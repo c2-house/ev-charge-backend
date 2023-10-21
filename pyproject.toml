@@ -10,6 +10,9 @@ packages = [{include = "ev_charge_backend"}]
 python = "^3.11"
 fastapi = "^0.104.0"
 uvicorn = "^0.23.2"
+python-decouple = "^3.8"
+pydantic-settings = "^2.0.3"
+aiohttp = "^3.8.6"
 
 
 [build-system]
