@@ -1,8 +1,10 @@
 import json
 import aiohttp
 from typing import Annotated
+from redis import asyncio as aioredis
 from fastapi import Depends, HTTPException, status
 from app.core.config import app_settings
+from app.services.redis import Redis
 from app.utils.data_handlers import PublicEvChagerDataHandler
 
 
@@ -27,7 +29,11 @@ async def get_chagers_from_public(district_code: str) -> dict:
         )
 
 
-async def get_organized_chargers(districtCode: str, lat: str, lng: str):
+async def get_organized_chargers(redis: Redis, districtCode: str, lat: str, lng: str):
+    cached_data = await check_cache(redis, districtCode)
+    if cached_data:
+        return json.loads(cached_data)
+
     data_handler = PublicEvChagerDataHandler()
     all_chargers_data = await get_chagers_from_public(districtCode)
     total_count = all_chargers_data.get("totalCount")
@@ -105,14 +111,21 @@ async def get_organized_chargers(districtCode: str, lat: str, lng: str):
         )
 
     stations.sort(key=lambda x: x["distance"])
-    with open("test.json", "w", encoding="utf-8") as f:
-        json.dump(stations, f, ensure_ascii=False, indent=4)
-
-    return {
+    result = {
         "chargerCount": total_count,
         "stationCount": len(stations),
         "stations": stations,
     }
+
+    await redis.setex(districtCode, 60 * 5, json.dumps(result))
+
+    return result
+
+
+async def check_cache(redis: aioredis.Redis, districtCode: str):
+    if await redis.exists(districtCode):
+        return await redis.get(districtCode)
+    return None
 
 
 Chargers = Annotated[dict, Depends(get_organized_chargers)]
