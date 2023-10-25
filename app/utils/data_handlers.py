@@ -79,5 +79,5 @@ class PublicEvChagerDataHandler:
             distance = round(distance, 1)
             return f"{distance}km"
 
-    def conver_to_coord(self, lat: str, lng: str) -> tuple:
+    def convert_to_coord(self, lat: str, lng: str) -> tuple:
         return (float(lat), float(lng))

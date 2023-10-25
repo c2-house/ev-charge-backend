@@ -30,11 +30,21 @@ async def get_chagers_from_public(district_code: str) -> dict:
 
 
 async def get_organized_chargers(redis: Redis, districtCode: str, lat: str, lng: str):
+    data_handler = PublicEvChagerDataHandler()
     cached_data = await check_cache(redis, districtCode)
     if cached_data:
-        return json.loads(cached_data)
+        cached_data = json.loads(cached_data)
+        current_lat_lng = data_handler.convert_to_coord(lat, lng)
 
-    data_handler = PublicEvChagerDataHandler()
+        for station in cached_data["stations"]:
+            station["distance"] = data_handler.get_haversine_distance(
+                current_lat_lng,
+                data_handler.convert_to_coord(station["lat"], station["lng"]),
+            )
+
+        cached_data["stations"].sort(key=lambda x: x["distance"])
+        return cached_data
+
     all_chargers_data = await get_chagers_from_public(districtCode)
     total_count = all_chargers_data.get("totalCount")
     chargers = all_chargers_data.get("items").get("item")
@@ -72,8 +82,8 @@ async def get_organized_chargers(redis: Redis, districtCode: str, lat: str, lng:
                 "lat": charger["lat"],
                 "lng": charger["lng"],
                 "distance": data_handler.get_haversine_distance(
-                    data_handler.conver_to_coord(lat, lng),
-                    data_handler.conver_to_coord(charger["lat"], charger["lng"]),
+                    data_handler.convert_to_coord(lat, lng),
+                    data_handler.convert_to_coord(charger["lat"], charger["lng"]),
                 ),
                 "location": data_handler.remove_null_string(charger["location"]),
                 "useTime": data_handler.convert_usetime(charger["useTime"]),
