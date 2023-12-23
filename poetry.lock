@@ -327,6 +327,23 @@ typing-extensions = ">=4.8.0"
 all = ["email-validator (>=2.0.0)", "httpx (>=0.23.0)", "itsdangerous (>=1.1.0)", "jinja2 (>=2.11.2)", "orjson (>=3.2.1)", "pydantic-extra-types (>=2.0.0)", "pydantic-settings (>=2.0.0)", "python-multipart (>=0.0.5)", "pyyaml (>=5.3.1)", "ujson (>=4.0.1,!=4.0.2,!=4.1.0,!=4.2.0,!=4.3.0,!=5.0.0,!=5.1.0)", "uvicorn[standard] (>=0.12.0)"]
 
 [[package]]
+name = "fastapi-mctools"
+version = "0.0.1"
+description = "Fastapi mc style tools"
+optional = false
+python-versions = ">=3.11,<4.0"
+files = [
+    {file = "fastapi_mctools-0.0.1-py3-none-any.whl", hash = "sha256:237bc9ef590e5e9c75768ef526f3d63222f8890784691cc7712ce620aa84daaa"},
+    {file = "fastapi_mctools-0.0.1.tar.gz", hash = "sha256:2991db04f74e18d8330f310cef9bb6744525b3ccd59151f4111df72bf86047c9"},
+]
+
+[package.dependencies]
+click = ">=8.1.5,<9.0.0"
+
+[package.extras]
+all = ["boto3 (>=1.28.63,<2.0.0)", "fastapi (>=0.100.0,<0.101.0)", "httpx (>=0.25.0,<0.26.0)", "redis (>=5.0.1,<6.0.0)", "sqlalchemy[asyncio] (>=2.0.23,<3.0.0)"]
+
+[[package]]
 name = "frozenlist"
 version = "1.4.0"
 description = "A list-like structure which implements collections.abc.MutableSequence"
@@ -874,4 +891,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "a0fa3a0fdf918383d69b2e11c9403ca944e65264050b007d485a8a17c8976589"
+content-hash = "452d6f66c77601a48ed78495940cb8da036bea7e13fa5548c366560798079098"

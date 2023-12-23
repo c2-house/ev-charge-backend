@@ -1,8 +1,7 @@
 import json
 import aiohttp
-from typing import Annotated
 from redis import asyncio as aioredis
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 from app.core.config import app_settings
 from app.services.redis import Redis
 from app.utils.data_handlers import PublicEvChagerDataHandler
@@ -29,7 +28,9 @@ async def get_chagers_from_public(district_code: str) -> dict:
         )
 
 
-async def get_organized_chargers(redis: Redis, districtCode: str, lat: str, lng: str):
+async def get_organized_chargers(
+    redis: Redis, districtCode: str, lat: str, lng: str
+) -> dict:
     data_handler = PublicEvChagerDataHandler()
     cached_data = await check_cache(redis, districtCode)
     if cached_data:
@@ -136,6 +137,3 @@ async def check_cache(redis: aioredis.Redis, districtCode: str):
     if await redis.exists(districtCode):
         return await redis.get(districtCode)
     return None
-
-
-Chargers = Annotated[dict, Depends(get_organized_chargers)]
