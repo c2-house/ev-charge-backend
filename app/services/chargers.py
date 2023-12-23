@@ -1,10 +1,12 @@
 import json
-import aiohttp
-from redis import asyncio as aioredis
-from fastapi import HTTPException, status
+from fastapi import status
 from app.core.config import app_settings
-from app.services.redis import Redis
+from app.core.lifespan import states
 from app.utils.data_handlers import PublicEvChagerDataHandler
+from fastapi_mctools.cache.redis import RedisCache
+from fastapi_mctools.exceptions import HTTPException
+
+redis = RedisCache("redis://redis:6379/0")
 
 
 async def get_chagers_from_public(district_code: str) -> dict:
@@ -17,22 +19,24 @@ async def get_chagers_from_public(district_code: str) -> dict:
         "dataType": "JSON",
         "zscode": district_code,
     }
+    session = states["api_client"]
+
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as resp:
-                data = await resp.json()
-                return data
-    except aiohttp.ClientError as e:
+        resp = await session.get(url, params=params)
+        data = await resp.json()
+        return data
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+            code="INTERNAL_SERVER_ERROR",
+            message="발생하면 안되는 에러가 발생하는건디?!",
         )
 
 
-async def get_organized_chargers(
-    redis: Redis, districtCode: str, lat: str, lng: str
-) -> dict:
+async def get_organized_chargers(districtCode: str, lat: str, lng: str) -> dict:
     data_handler = PublicEvChagerDataHandler()
-    cached_data = await check_cache(redis, districtCode)
+    cached_data = await redis.get(districtCode)
     if cached_data:
         cached_data = json.loads(cached_data)
         current_lat_lng = data_handler.convert_to_coord(lat, lng)
@@ -128,12 +132,6 @@ async def get_organized_chargers(
         "stations": stations,
     }
 
-    await redis.setex(districtCode, 60 * 5, json.dumps(result))
+    await redis.set(districtCode, json.dumps(result), 60 * 5)
 
     return result
-
-
-async def check_cache(redis: aioredis.Redis, districtCode: str):
-    if await redis.exists(districtCode):
-        return await redis.get(districtCode)
-    return None

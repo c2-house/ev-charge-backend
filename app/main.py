@@ -5,9 +5,12 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi_mctools.middlewares.logging import RequestLoggingMiddleware
 from app.routes.routers import router as api_router
 from app.core.config import app_settings
+from app.core.lifespan import lifespan
 
 
-app = FastAPI()
+app = FastAPI(
+    lifespan=lifespan,
+)
 logger = logging.getLogger("request")
 
 app.include_router(api_router)
